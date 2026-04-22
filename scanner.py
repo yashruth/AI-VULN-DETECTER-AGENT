@@ -211,6 +211,27 @@ def scan(url):
 
         if "index of /" in r.text.lower():
             vulns.append("Directory Listing Enabled")
+            # CRITICAL FILE EXPOSURE
+
+critical_files = [
+"/.env",
+"/.git/config",
+"/config.php",
+"/backup.zip",
+"/database.sql"
+]
+
+for file in critical_files:
+
+    try:
+
+        r = requests.get(url + file, timeout=3)
+
+        if r.status_code == 200:
+            vulns.append("Critical: Sensitive File Exposure " + file)
+
+    except:
+        pass
 
     except:
 
