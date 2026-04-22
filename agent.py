@@ -1,31 +1,47 @@
+import streamlit as st
 from crawler import crawl
 from scanner import scan
 from analyzer import analyze
 from cvss import calculate_cvss
 from report import generate_report
 
-target = input("Enter target URL: ")
+st.title("AI Bug Bounty Scanner")
 
-urls = crawl(target)
+url = st.text_input("Enter Target URL")
 
-if target not in urls:
-    urls.append(target)
+if st.button("Start Scan"):
 
-all_results = []
+    if url:
 
-for url in urls:
+        st.write("Scanning target...")
 
-    vulns = scan(url)
+        urls = crawl(url)
 
-    analyzed = analyze(vulns)
+        if url not in urls:
+            urls.append(url)
 
-    for a in analyzed:
+        results = []
 
-        a["cvss"] = calculate_cvss(a["risk"])
+        for u in urls:
 
-        all_results.append(a)
+            vulns = scan(u)
 
-generate_report(all_results)
+            analyzed = analyze(vulns)
 
-print("Scan finished.")
-print("Report saved as report.pdf")
+            for a in analyzed:
+
+                a["cvss"] = calculate_cvss(a["risk"])
+
+                results.append(a)
+
+        for r in results:
+            st.warning(
+                f"{r['vulnerability']} | Risk: {r['risk']} | CVSS: {r['cvss']}"
+            )
+
+        generate_report(results)
+
+        st.success("Scan complete. Report generated.")
+
+    else:
+        st.error("Enter a URL")
