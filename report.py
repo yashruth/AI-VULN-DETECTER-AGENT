@@ -1,4 +1,5 @@
 from fpdf import FPDF
+from vuln_database import get_details
 
 def generate_report(vulns):
 
@@ -7,12 +8,17 @@ def generate_report(vulns):
 
     pdf.set_font("Arial", size=12)
 
-    pdf.cell(200,10,"AI Bug Bounty Report", ln=True)
+    pdf.cell(200,10,"AI Vulnerability Scan Report", ln=True)
 
     for v in vulns:
 
-        line = f"{v['vulnerability']} | Risk: {v['risk']} | CVSS: {v['cvss']}"
+        details = get_details(v["vulnerability"])
 
-        pdf.cell(200,10,line, ln=True)
+        pdf.cell(200,10,f"Vulnerability: {v['vulnerability']}", ln=True)
+        pdf.cell(200,10,f"Risk: {v['risk']}", ln=True)
+        pdf.cell(200,10,f"Impact: {details['impact']}", ln=True)
+        pdf.cell(200,10,f"Recommendation: {details['recommendation']}", ln=True)
 
-    pdf.output("report.pdf")
+        pdf.cell(200,10,"---------------------------------", ln=True)
+
+    pdf.output("security_report.pdf")
