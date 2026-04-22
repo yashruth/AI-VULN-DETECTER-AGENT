@@ -1,44 +1,5 @@
 import requests
 
-# payloads
-xss_payload = "<script>alert(1)</script>"
-sql_payload = "' OR 1=1--"
-
-# directories to scan
-directories = [
-"/admin","/administrator","/login","/dashboard","/backup",
-"/uploads","/private","/test","/config","/api"
-]
-
-# sensitive files
-sensitive_files = [
-"/.env",
-"/.git/config",
-"/backup.zip",
-"/database.sql",
-"/config.php",
-"/wp-config.php",
-"/phpinfo.php",
-"/debug.log",
-"/.htaccess",
-"/robots.txt"
-]
-
-# security headers
-security_headers = [
-"Content-Security-Policy",
-"X-Frame-Options",
-"Strict-Transport-Security",
-"X-Content-Type-Options",
-"Referrer-Policy",
-"Permissions-Policy",
-"Cross-Origin-Resource-Policy",
-"Cross-Origin-Embedder-Policy",
-"Cross-Origin-Opener-Policy",
-"Expect-CT"
-]
-
-
 def scan(url):
 
     vulns = []
@@ -47,135 +8,91 @@ def scan(url):
 
         r = requests.get(url, timeout=5)
         headers = r.headers
+        body = r.text.lower()
 
-        # --------------------------------
-        # SECURITY HEADER CHECKS
-        # --------------------------------
+        # ------------------------------------------------
+        # CRITICAL VULNERABILITIES
+        # ------------------------------------------------
 
-        for header in security_headers:
+        # SQL Injection indicator
+        sql_payload = "' OR 1=1--"
 
-            if header not in headers:
-                vulns.append(f"Missing Security Header: {header}")
+        try:
+            sqli = requests.get(url + "?id=" + sql_payload)
 
-        # --------------------------------
-        # HTTPS CHECK
-        # --------------------------------
+            sql_errors = [
+                "sql syntax",
+                "mysql",
+                "database error",
+                "warning: mysql",
+                "postgresql error"
+            ]
 
-        if url.startswith("http://"):
-            vulns.append("Website not using HTTPS")
+            for e in sql_errors:
+                if e in sqli.text.lower():
+                    vulns.append("Possible SQL Injection")
 
-        # --------------------------------
-        # SERVER DISCLOSURE
-        # --------------------------------
+        except:
+            pass
 
-        if "Server" in headers:
-            vulns.append("Server Information Disclosure")
 
-        if "X-Powered-By" in headers:
-            vulns.append("Technology Disclosure")
+        # Command Injection / RCE indicator
+        try:
+            cmd = requests.get(url + "?cmd=id")
 
-        # --------------------------------
-        # COOKIE SECURITY
-        # --------------------------------
+            if "uid=" in cmd.text:
+                vulns.append("Possible Remote Command Execution")
 
-        for cookie in r.cookies:
+        except:
+            pass
 
-            if not cookie.secure:
-                vulns.append("Cookie without Secure flag")
 
-            if not cookie.has_nonstandard_attr("HttpOnly"):
-                vulns.append("Cookie without HttpOnly")
-
-        # --------------------------------
-        # DIRECTORY DISCOVERY
-        # --------------------------------
-
-        for d in directories:
-
-            try:
-
-                res = requests.get(url + d, timeout=3)
-
-                if res.status_code == 200:
-                    vulns.append("Exposed Directory: " + d)
-
-            except:
-                pass
-
-        # --------------------------------
-        # SENSITIVE FILE DISCOVERY
-        # --------------------------------
+        # Sensitive file exposure
+        sensitive_files = [
+        "/.env",
+        "/.git/config",
+        "/backup.zip",
+        "/database.sql",
+        "/config.php",
+        "/wp-config.php",
+        "/phpinfo.php",
+        "/debug.log",
+        "/.htaccess",
+        "/.svn/entries"
+        ]
 
         for f in sensitive_files:
 
             try:
 
-                res = requests.get(url + f, timeout=3)
+                res = requests.get(url + f)
 
                 if res.status_code == 200:
-                    vulns.append("Sensitive File Exposed: " + f)
+                    vulns.append("Sensitive File Exposure " + f)
 
             except:
                 pass
 
-        # --------------------------------
-        # SQL INJECTION INDICATOR
-        # --------------------------------
+
+        # ------------------------------------------------
+        # HIGH VULNERABILITIES
+        # ------------------------------------------------
+
+        # Reflected XSS
+        payload = "<script>alert(1)</script>"
 
         try:
 
-            test = requests.get(url + "?id=" + sql_payload)
+            xss = requests.get(url + "?q=" + payload)
 
-            sql_errors = [
-            "sql syntax",
-            "mysql",
-            "database error",
-            "warning: mysql"
-            ]
-
-            for error in sql_errors:
-
-                if error in test.text.lower():
-                    vulns.append("Possible SQL Injection")
-                    break
+            if payload in xss.text:
+                vulns.append("Reflected XSS")
 
         except:
             pass
 
-        # --------------------------------
-        # XSS TEST
-        # --------------------------------
 
-        try:
-
-            xss_test = requests.get(url + "?q=" + xss_payload)
-
-            if xss_payload in xss_test.text:
-                vulns.append("Possible Reflected XSS")
-
-        except:
-            pass
-
-        # --------------------------------
-        # CORS MISCONFIGURATION
-        # --------------------------------
-
-        try:
-
-            cors_headers = {"Origin": "evil.com"}
-
-            cors_test = requests.get(url, headers=cors_headers)
-
-            if "Access-Control-Allow-Origin" in cors_test.headers:
-                vulns.append("Possible CORS Misconfiguration")
-
-        except:
-            pass
-
-        # --------------------------------
-        # OPEN REDIRECT
-        # --------------------------------
-
+        # Open redirect
         try:
 
             redirect = requests.get(
@@ -184,57 +101,125 @@ def scan(url):
             )
 
             if "evil.com" in str(redirect.headers):
-                vulns.append("Open Redirect Vulnerability")
+                vulns.append("Open Redirect")
 
         except:
             pass
 
-        # --------------------------------
-        # DEBUG MODE / ERROR DISCLOSURE
-        # --------------------------------
 
+        # CORS misconfiguration
+        try:
+
+            cors = requests.get(url, headers={"Origin":"evil.com"})
+
+            if "Access-Control-Allow-Origin" in cors.headers:
+                vulns.append("Possible CORS Misconfiguration")
+
+        except:
+            pass
+
+
+        # Directory listing
+        if "index of /" in body:
+            vulns.append("Directory Listing Enabled")
+
+
+        # ------------------------------------------------
+        # MEDIUM VULNERABILITIES
+        # ------------------------------------------------
+
+        # Admin / directory exposure
+        directories = [
+        "/admin",
+        "/administrator",
+        "/login",
+        "/dashboard",
+        "/uploads",
+        "/backup",
+        "/config",
+        "/private",
+        "/test",
+        "/api"
+        ]
+
+        for d in directories:
+
+            try:
+
+                res = requests.get(url + d)
+
+                if res.status_code == 200:
+                    vulns.append("Exposed Directory " + d)
+
+            except:
+                pass
+
+
+        # Debug information
         debug_words = [
+        "debug",
         "stack trace",
-        "debug mode",
-        "exception occurred",
+        "exception",
         "traceback"
         ]
 
         for word in debug_words:
 
-            if word in r.text.lower():
+            if word in body:
                 vulns.append("Debug Information Disclosure")
 
-        # --------------------------------
-        # DIRECTORY LISTING
-        # --------------------------------
 
-        if "index of /" in r.text.lower():
-            vulns.append("Directory Listing Enabled")
-            # CRITICAL FILE EXPOSURE
+        # ------------------------------------------------
+        # LOW VULNERABILITIES
+        # ------------------------------------------------
 
-critical_files = [
-"/.env",
-"/.git/config",
-"/config.php",
-"/backup.zip",
-"/database.sql"
-]
+        # Security headers
+        security_headers = [
+        "Content-Security-Policy",
+        "X-Frame-Options",
+        "Strict-Transport-Security",
+        "X-Content-Type-Options",
+        "Referrer-Policy",
+        "Permissions-Policy",
+        "Cross-Origin-Resource-Policy",
+        "Cross-Origin-Embedder-Policy",
+        "Cross-Origin-Opener-Policy",
+        "Expect-CT"
+        ]
 
-for file in critical_files:
+        for h in security_headers:
 
-    try:
+            if h not in headers:
+                vulns.append("Missing Security Header " + h)
 
-        r = requests.get(url + file, timeout=3)
 
-        if r.status_code == 200:
-            vulns.append("Critical: Sensitive File Exposure " + file)
+        # HTTPS check
+        if url.startswith("http://"):
+            vulns.append("Website not using HTTPS")
 
-    except:
-        pass
+
+        # Server disclosure
+        if "Server" in headers:
+            vulns.append("Server Information Disclosure")
+
+
+        if "X-Powered-By" in headers:
+            vulns.append("Technology Disclosure")
+
+
+        # Cookie issues
+        for cookie in r.cookies:
+
+            if not cookie.secure:
+                vulns.append("Cookie without Secure flag")
+
+            if not cookie.has_nonstandard_attr("HttpOnly"):
+                vulns.append("Cookie without HttpOnly")
+
 
     except:
 
         vulns.append("Target not reachable")
+
 
     return list(set(vulns))
