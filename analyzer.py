@@ -4,21 +4,21 @@ def analyze(vulns):
 
     for v in vulns:
 
-        if "Critical" in v:
-            risk = "Critical"
+        if "SQL" in v or "Sensitive File" in v or "Command" in v:
+            severity = "Critical"
 
-        elif "SQL" in v or "XSS" in v:
-            risk = "High"
+        elif "XSS" in v or "Redirect" in v:
+            severity = "High"
 
         elif "Directory" in v:
-            risk = "Medium"
+            severity = "Medium"
 
         else:
-            risk = "Low"
+            severity = "Low"
 
         results.append({
             "vulnerability": v,
-            "risk": risk
+            "severity": severity
         })
 
     return results
