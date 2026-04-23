@@ -3,19 +3,19 @@ from bs4 import BeautifulSoup
 
 def crawl(url):
 
-    urls = []
+    urls = set()
 
     try:
-        r = requests.get(url, timeout=5)
+        r = requests.get(url)
         soup = BeautifulSoup(r.text, "html.parser")
 
         for link in soup.find_all("a"):
             href = link.get("href")
 
             if href and href.startswith("/"):
-                urls.append(url + href)
+                urls.add(url.rstrip("/") + href)
 
     except:
         pass
 
-    return list(set(urls))
+    return list(urls)
