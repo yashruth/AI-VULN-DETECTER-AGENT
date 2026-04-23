@@ -1,29 +1,12 @@
-def get_details(vuln):
+def get_details(v):
 
-    database = {
+    if "SQL" in v:
+        return ("Database compromise","Use prepared statements")
 
-        "Possible SQL Injection": {
-            "impact": "Attackers may access or modify database data.",
-            "recommendation": "Use parameterized queries and input validation."
-        },
+    if "XSS" in v:
+        return ("Script execution","Sanitize input")
 
-        "Sensitive File Exposure": {
-            "impact": "Attackers can access sensitive configuration or credentials.",
-            "recommendation": "Restrict access to sensitive files using proper permissions."
-        },
+    if "Sensitive" in v:
+        return ("Credential exposure","Restrict access")
 
-        "Reflected XSS": {
-            "impact": "Attackers can execute malicious scripts in user browsers.",
-            "recommendation": "Sanitize user input and implement Content Security Policy."
-        }
-    }
-
-    for key in database:
-
-        if key in vuln:
-            return database[key]
-
-    return {
-        "impact": "Security misconfiguration detected.",
-        "recommendation": "Review application security configuration."
-    }
+    return ("Misconfiguration","Review settings")
