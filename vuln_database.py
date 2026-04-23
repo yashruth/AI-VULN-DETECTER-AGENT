@@ -1,131 +1,159 @@
 def get_details(v):
 
+    v = v.lower()
+
     # ---------------- CRITICAL ----------------
-    if "SQL Injection" in v:
+    if "sql injection" in v:
         return (
-            "Attackers can access, modify, or delete sensitive database data.",
-            "Use parameterized queries (prepared statements) and strict input validation."
+            "SQL Injection vulnerability.",
+            "Attackers can read, modify, or delete database data.",
+            "High",
+            "Use parameterized queries and input validation."
         )
 
-    if "Remote Code Execution" in v:
+    if "remote code execution" in v or "rce" in v:
         return (
-            "Attackers can execute arbitrary commands and take full control of the server.",
-            "Avoid executing user input in system commands and use secure APIs."
+            "Remote code execution vulnerability.",
+            "Full system compromise is possible.",
+            "High",
+            "Avoid executing user input and secure command execution."
         )
 
-    if "Sensitive File Exposure" in v:
+    if "sensitive file" in v or ".env" in v or ".git" in v:
         return (
-            "Sensitive data such as credentials, API keys, or configurations may be exposed.",
-            "Restrict access to sensitive files using proper permissions and server rules."
-        )
-
-    if ".env" in v or ".git" in v:
-        return (
-            "Critical secrets like database credentials or API keys may be leaked.",
-            "Remove these files from public access and store secrets securely."
+            "Sensitive files are publicly accessible.",
+            "Credentials, API keys, or configurations may be exposed.",
+            "High",
+            "Restrict access and move sensitive files outside web root."
         )
 
     # ---------------- HIGH ----------------
-    if "XSS" in v:
+    if "xss" in v:
         return (
-            "Attackers can inject malicious scripts that execute in users’ browsers.",
-            "Sanitize and encode all user inputs and implement Content Security Policy (CSP)."
+            "Cross-site scripting vulnerability.",
+            "Attackers can execute scripts in user browsers.",
+            "High",
+            "Sanitize inputs and implement CSP."
         )
 
-    if "Open Redirect" in v:
+    if "open redirect" in v:
         return (
-            "Users can be redirected to malicious or phishing websites.",
-            "Validate and restrict redirect URLs to trusted domains only."
+            "Open redirect vulnerability.",
+            "Users can be redirected to malicious websites.",
+            "High",
+            "Validate redirect URLs."
         )
 
-    if "CORS" in v:
+    if "cors" in v:
         return (
-            "Unauthorized domains may access sensitive data from your application.",
-            "Restrict Access-Control-Allow-Origin to trusted domains only."
+            "CORS misconfiguration.",
+            "Unauthorized domains may access sensitive data.",
+            "High",
+            "Restrict allowed origins."
         )
 
-    if "Command Injection" in v:
+    if "command injection" in v:
         return (
-            "Attackers may execute arbitrary system commands.",
-            "Avoid passing user input directly into system commands."
+            "Command injection vulnerability.",
+            "Attackers can execute system commands.",
+            "High",
+            "Avoid passing user input into system calls."
         )
 
     # ---------------- MEDIUM ----------------
-    if "Directory Listing" in v:
+    if "directory listing" in v:
         return (
-            "Server directory structure is exposed to attackers.",
-            "Disable directory listing in the web server configuration."
+            "Directory listing enabled.",
+            "Attackers can view internal file structure.",
+            "Medium",
+            "Disable directory listing."
         )
 
-    if "Directory" in v:
+    if "directory" in v or "admin" in v or "login" in v:
         return (
-            "Unauthorized users may access restricted endpoints or admin panels.",
-            "Restrict access to sensitive directories using authentication and access controls."
+            "Sensitive directory exposed.",
+            "Unauthorized access to restricted endpoints.",
+            "Medium",
+            "Restrict access using authentication."
         )
 
-    if "Debug" in v or "Traceback" in v:
+    if "debug" in v or "traceback" in v:
         return (
-            "Internal application details and errors are exposed.",
-            "Disable debug mode and remove detailed error messages in production."
-        )
-
-    if "API" in v:
-        return (
-            "API endpoints may expose sensitive data or functionality.",
-            "Implement authentication, authorization, and rate limiting."
+            "Debug information exposed.",
+            "Internal system details may leak.",
+            "Medium",
+            "Disable debug mode in production."
         )
 
     # ---------------- LOW ----------------
-    if "Missing Header" in v:
+    if "missing header" in v:
         return (
-            "Security protections like clickjacking or XSS defense are weakened.",
-            "Add recommended HTTP security headers such as CSP, HSTS, and X-Frame-Options."
+            "Security header missing.",
+            "Reduced browser protection against attacks.",
+            "Low",
+            "Add recommended HTTP security headers."
         )
 
-    if "CSP" in v:
+    if "csp" in v:
         return (
-            "Browser protection against script injection is missing.",
-            "Implement a strong Content Security Policy."
+            "Content Security Policy not implemented.",
+            "Increases risk of XSS attacks.",
+            "Low",
+            "Implement CSP headers."
         )
 
-    if "X-Frame" in v:
+    if "x-frame" in v:
         return (
-            "Application may be vulnerable to clickjacking attacks.",
+            "Missing X-Frame-Options header.",
+            "Application may be vulnerable to clickjacking.",
+            "Low",
             "Set X-Frame-Options to DENY or SAMEORIGIN."
         )
 
-    if "HSTS" in v:
+    if "hsts" in v:
         return (
-            "Secure HTTPS connections are not enforced.",
-            "Enable Strict-Transport-Security with an appropriate max-age."
+            "HSTS not enabled.",
+            "HTTPS is not enforced.",
+            "Low",
+            "Enable Strict-Transport-Security."
         )
 
-    if "Server Disclosure" in v:
+    if "server disclosure" in v:
         return (
-            "Server version details help attackers identify vulnerabilities.",
-            "Remove or obfuscate server header information."
+            "Server information disclosed.",
+            "Helps attackers identify vulnerabilities.",
+            "Low",
+            "Remove or hide server headers."
         )
 
-    if "Technology Disclosure" in v:
+    if "technology disclosure" in v:
         return (
-            "Technology stack information increases attack surface.",
-            "Remove X-Powered-By and similar headers."
+            "Technology stack exposed.",
+            "Increases attack surface.",
+            "Low",
+            "Remove X-Powered-By headers."
         )
 
-    if "Cookie" in v:
+    if "cookie" in v:
         return (
-            "Cookies may be exposed or accessible to attackers.",
-            "Set Secure, HttpOnly, and SameSite attributes for cookies."
+            "Insecure cookie configuration.",
+            "Cookies may be accessed by attackers.",
+            "Low",
+            "Use Secure, HttpOnly, and SameSite flags."
         )
 
-    if "HTTPS" in v:
+    if "https" in v:
         return (
-            "Data transmitted between user and server can be intercepted.",
-            "Enable HTTPS and redirect all HTTP traffic to HTTPS."
+            "Application not using HTTPS.",
+            "Data can be intercepted.",
+            "Low",
+            "Enable HTTPS and redirect all traffic."
         )
 
-    # ---------------- FALLBACK (SPECIFIC, NOT GENERIC) ----------------
+    # ---------------- DEFAULT ----------------
     return (
-        f"The issue '{v}' may expose the application to security risks.",
-        f"Investigate '{v}' and apply appropriate security hardening measures."
+        f"Issue detected: {v}",
+        "This issue may expose the application to security risks.",
+        "Low",
+        "Investigate and apply appropriate security controls."
     )
