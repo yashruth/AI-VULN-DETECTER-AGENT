@@ -4,3 +4,4 @@ beautifulsoup4
 fpdf
 pandas
 matplotlib
+weasyprint
