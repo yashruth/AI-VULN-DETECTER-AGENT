@@ -1,9 +1,13 @@
-def calculate_cvss(risk):
+def calculate_cvss(severity):
 
-    if risk == "High":
-        return 9.0
+    if severity == "Critical":
+        return 9.5
 
-    if risk == "Medium":
+    elif severity == "High":
+        return 8.0
+
+    elif severity == "Medium":
         return 6.0
 
-    return 3.0
+    else:
+        return 3.0
