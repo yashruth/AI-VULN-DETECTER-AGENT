@@ -4,10 +4,10 @@ def analyze(vulns):
 
     for v in vulns:
 
-        if "SQL" in v or "Sensitive File" in v or "Command" in v:
+        if "SQL" in v or "Sensitive" in v:
             severity = "Critical"
 
-        elif "XSS" in v or "Redirect" in v:
+        elif "XSS" in v:
             severity = "High"
 
         elif "Directory" in v:
