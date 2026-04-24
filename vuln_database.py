@@ -157,3 +157,42 @@ def get_details(v):
         "Low",
         "Investigate and apply appropriate security controls."
     )
+    if "AI Prompt Injection" in v:
+    return (
+        "User input can override AI system instructions.",
+        "Attackers may control AI responses.",
+        "High",
+        "Sanitize inputs and isolate system prompts."
+    )
+
+if "AI Sensitive Data Leakage" in v:
+    return (
+        "AI exposes sensitive information.",
+        "Confidential data leakage risk.",
+        "High",
+        "Restrict access to sensitive data."
+    )
+
+if "AI Jailbreak" in v:
+    return (
+        "AI safety controls can be bypassed.",
+        "Unsafe responses may be generated.",
+        "Medium",
+        "Implement stronger guardrails."
+    )
+
+if "AI Role Manipulation" in v:
+    return (
+        "User can escalate privileges in AI context.",
+        "Unauthorized data exposure possible.",
+        "High",
+        "Validate role context strictly."
+    )
+
+if "AI Tool Abuse" in v:
+    return (
+        "AI may execute unintended commands.",
+        "System compromise risk.",
+        "High",
+        "Restrict tool execution."
+    )
